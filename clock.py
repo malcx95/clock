@@ -3,6 +3,8 @@
 import argparse
 import json
 import datetime
+import sys
+
 from pathlib import Path
 
 
@@ -19,25 +21,46 @@ def main():
     parser.add_argument("-p", "--pause", action="store_true", help="Start a pause")
     parser.add_argument("-t", "--pause-end", action="store_true", help="End a pause")
     parser.add_argument("-m", "--month-summary", action="store_true", help="Show summary of the current month")
+    parser.add_argument("-a", "--at", type=str, default=None, help="Enter a specific time (format: HH:MM)")
 
     args = parser.parse_args()
 
+    hour, minute = datetime.datetime.now().hour, datetime.datetime.now().minute
+    if args.at:
+        hour, minute = parse_time(args.at)
+
     if args.check_in:
-        check_in()
+        check_in(hour, minute)
     elif args.lunch:
-        lunch_start()
+        lunch_start(hour, minute)
     elif args.lunch_end:
-        lunch_end()
+        lunch_end(hour, minute)
     elif args.check_out:
-        check_out()
+        check_out(hour, minute)
     elif args.status:
         status()
     elif args.pause:
-        pause()
+        pause(hour, minute)
     elif args.pause_end:
-        pause_end()
+        pause_end(hour, minute)
     elif args.month_summary:
         month_summary()
+
+
+def parse_time(time_str):
+    try:
+        hour, minute = time_str.split(":")
+        hour = int(hour)
+        minute = int(minute)
+    except ValueError:
+        print(f"Invalid time format {time_str}. Use HH:MM.")
+        sys.exit(-1)
+
+    if hour < 0 or hour > 23 or minute < 0 or minute > 59:
+        print(f"Invalid time format {time_str}. Use HH:MM.")
+        sys.exit(-1)
+
+    return hour, minute
 
 
 def month_summary():
@@ -149,28 +172,31 @@ def load_time_dict():
     return time_dict
 
 
-def check_in():
+def check_in(hour, minute):
     if not input("Start new day? (y/n): ") == "y":
         return
 
     time_dict = load_time_dict()
 
-    time = datetime.datetime.now()
-    time_tup = (time.hour, time.minute)
+    time_tup = (hour, minute)
 
     updated_time_dict = update_todays_time(time_dict, "in", time_tup)
 
     save_time_dict(updated_time_dict)
 
-    print(f"Checked in at {time.hour}:{time.minute:02}")
+    print(f"Checked in at {hour}:{minute:02}")
 
 
-def check_out():
+def check_out(hour, minute):
     total_time_dict = load_time_dict()
 
     time_dict = get_todays_time(total_time_dict)
 
-    time = datetime.datetime.now()
+    time = datetime.datetime(
+        year=datetime.datetime.now().year,
+        month=datetime.datetime.now().month,
+        day=datetime.datetime.now().day,
+        hour=hour, minute=minute)
 
     check_in_hour, check_in_minute = time_dict["in"]
     lunch_start_hour, lunch_start_minute = time_dict["lunch_start"]
@@ -294,39 +320,36 @@ def status():
         print(f"You checked in at {check_in_hour}:{check_in_minute:02}")
 
 
-def lunch_start():
+def lunch_start(hour, minute):
     total_time_dict = load_time_dict()
     time_dict = get_todays_time(total_time_dict)
 
-    time = datetime.datetime.now()
-    time_tup = (time.hour, time.minute)
+    time_tup = (hour, minute)
     time_dict["lunch_start"] = time_tup
 
     save_time_dict(total_time_dict)
 
-    print(f"Started lunch at {time.hour}:{time.minute:02}")
+    print(f"Started lunch at {hour}:{minute:02}")
 
 
-def lunch_end():
+def lunch_end(hour, minute):
     total_time_dict = load_time_dict()
     time_dict = get_todays_time(total_time_dict)
 
-    time = datetime.datetime.now()
-    time_tup = (time.hour, time.minute)
+    time_tup = (hour, minute)
     time_dict["lunch_end"] = time_tup
 
     save_time_dict(total_time_dict)
 
-    print(f"Ended lunch at {time.hour}:{time.minute:02}")
+    print(f"Ended lunch at {hour}:{minute:02}")
     status()
 
 
-def pause():
+def pause(hour, minute):
     total_time_dict = load_time_dict()
     time_dict = get_todays_time(total_time_dict)
 
-    time = datetime.datetime.now()
-    time_tup = (time.hour, time.minute)
+    time_tup = (hour, minute)
     if "pauses" not in time_dict:
         time_dict["pauses"] = []
     elif "pause_end" not in time_dict["pauses"][-1]:
@@ -338,14 +361,13 @@ def pause():
 
     save_time_dict(total_time_dict)
 
-    print(f"Paused at {time.hour}:{time.minute:02}")
+    print(f"Paused at {hour}:{minute:02}")
 
 
-def pause_end():
+def pause_end(hour, minute):
     time_dict = load_time_dict()
 
-    time = datetime.datetime.now()
-    time_tup = (time.hour, time.minute)
+    time_tup = (hour, minute)
     if "pauses" not in time_dict or "pause_start" not in time_dict["pauses"][-1]:
         print("There is no active pause!")
         return
@@ -354,7 +376,7 @@ def pause_end():
 
     save_time_dict(time_dict)
 
-    print(f"Ended pause at {time.hour}:{time.minute:02}")
+    print(f"Ended pause at {hour}:{minute:02}")
 
 
 if __name__ == "__main__":

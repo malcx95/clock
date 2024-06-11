@@ -49,6 +49,12 @@ To end a pause, run
 clock -t
 ```
 
+By default, the script will use the current time. If you want to specify a different time, you can use the `-a` option for all these commands:
+
+```bash
+clock -i -a 9:00
+```
+
 At any time, you can view this day's status by running
 
 ```bash
