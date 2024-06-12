@@ -376,7 +376,7 @@ def pause_end(hour, minute):
 
     time_dict["pauses"][-1]["pause_end"] = time_tup
 
-    save_time_dict(time_dict)
+    save_time_dict(total_time_dict)
 
     print(f"Ended pause at {hour}:{minute:02}")
 
