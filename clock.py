@@ -365,7 +365,9 @@ def pause(hour, minute):
 
 
 def pause_end(hour, minute):
-    time_dict = load_time_dict()
+    total_time_dict = load_time_dict()
+
+    time_dict = get_todays_time(total_time_dict)
 
     time_tup = (hour, minute)
     if "pauses" not in time_dict or "pause_start" not in time_dict["pauses"][-1]:
