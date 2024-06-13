@@ -243,7 +243,7 @@ def check_out(hour, minute):
 
     print(f"You have worked for {int(hours)} hours and {int(minutes)} minutes today.\n")
     print(f"Today's difference to 8 hours is {'-' if negative else '+'}{int(diff_hours)}:{int(diff_minutes):02}.\n")
-    print(f"This month's total difference to 8 hours/day is {'-' if negative else '+'}{int(total_diff_hours)}:{int(total_diff_minutes):02}.\n")
+    print(f"This month's total difference to 8 hours/day is {'-' if total_negative else '+'}{int(total_diff_hours)}:{int(total_diff_minutes):02}.\n")
 
 
 def get_this_months_total_diff(time_dict):
